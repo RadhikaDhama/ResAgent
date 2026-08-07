@@ -98,8 +98,8 @@ def analyze_job_description_fit(job_description: str) -> str:
 
 ---
 
-#### Transparent Score Derivation & Weighted Breakdown:
-$$\\text{{Overall Match Score}} = \\frac{{\\text{{Skill Alignment}}}}{{100}} \\times \\left(0.50 \\times \\text{{Skill Score}} + 0.25 \\times \\text{{Academic Quality}} + 0.25 \\times \\text{{Industry Experience}}\\right)$$
+#### Score Calculation Weighting:
+`50% Skill Alignment` | `25% Academic Quality` | `25% Industry Experience`
 
 1. **Skill Keyword Alignment (50% Weight): {skill_score}%**
    - **Matched Core Technologies:** {', '.join([f'`{s}`' for s in matched]) if matched else 'None (No relevant technology keywords found in Job Description)'}
