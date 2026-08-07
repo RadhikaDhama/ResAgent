@@ -667,6 +667,12 @@ elif nav_selection == "Technical Competencies":
                     height=380
                 )
                 st.plotly_chart(fig, use_container_width=True)
+        else:
+            categories = ['Statistical Inference', 'Deep Learning / LLMs', 'Machine Learning', 'Speech & Audio', 'Quant Risk', 'Full-Stack / Streamlit']
+            scores = [95, 92, 90, 90, 88, 85]
+            for cat, score in zip(categories, scores):
+                st.write(f"**{cat} — {score}%**")
+                st.progress(score / 100.0)
 
     with c2:
         st.markdown("**Primary Skill Distribution:**")
