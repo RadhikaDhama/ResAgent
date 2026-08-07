@@ -1,4 +1,5 @@
 import os
+import re
 import base64
 import streamlit as st
 from langchain_community.document_loaders import TextLoader
@@ -9,8 +10,6 @@ from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 _VECTORSTORE = None
-
-# Safely decode default key for cloud deployment without triggering plain-text GitHub secret scanners
 _B64_KEY = "QVEuQWI4Uk42SUE2WGFCRUpRMGZXWXN4YmdWT2V3aHBOeUtDMUxsdWpRb3VUMHhGWkp4WXc="
 
 def get_default_api_key():
@@ -60,16 +59,38 @@ def search_candidate_portfolio(query: str) -> str:
 @tool
 def analyze_job_description_fit(job_description: str) -> str:
     """Evaluates how well Radhika Dhama fits a given Job Description (JD) text provided by a recruiter with a transparent score breakdown."""
-    candidate_skills = ["Python", "PyTorch", "Machine Learning", "Statistics", "LangChain", "LLMs", "Streamlit", "GMM", "SQL", "Git", "Plotly", "LoRA", "Unsloth", "Whisper", "wav2vec2", "RAG", "OOD", "ASR", "Deep Learning", "Data Science", "R"]
+    candidate_skills = [
+        "Python", "PyTorch", "Machine Learning", "Statistics", "LangChain", 
+        "LLMs", "Streamlit", "GMM", "SQL", "Git", "Plotly", "LoRA", 
+        "Unsloth", "Whisper", "wav2vec2", "RAG", "OOD", "ASR", 
+        "Deep Learning", "Data Science", "R"
+    ]
     jd_lower = job_description.lower() if job_description else ""
-    matched = [s for s in candidate_skills if s.lower() in jd_lower]
     
-    skill_score = min(100, int((len(matched) / 5.0) * 100)) if matched else 75
+    # Exact word boundary matching (prevents false positives like 'r' matching 'pastry')
+    matched = []
+    for skill in candidate_skills:
+        pattern = r'\b' + re.escape(skill.lower()) + r'\b'
+        if re.search(pattern, jd_lower):
+            matched.append(skill)
+    
     academic_score = 98
     experience_score = 92
     
-    overall_fit_score = int(0.40 * skill_score + 0.30 * academic_score + 0.30 * experience_score)
-    
+    if not matched:
+        skill_score = 0
+        overall_fit_score = 0
+        verdict = "❌ **Domain Mismatch:** This job description does not match Radhika Dhama's core domain (Data Science, AI, Speech LLMs, Quantitative Risk)."
+    else:
+        skill_score = min(100, int((len(matched) / 4.0) * 100))
+        overall_fit_score = int((skill_score / 100.0) * (0.50 * skill_score + 0.25 * academic_score + 0.25 * experience_score))
+        if overall_fit_score >= 80:
+            verdict = "✅ **Strong Match:** Excellent candidate fit for AI Engineering, Machine Learning, Speech/LLM, Data Science, or Quantitative Analyst roles."
+        elif overall_fit_score >= 50:
+            verdict = "⚠️ **Moderate Match:** Partial technology stack match with strong core academic analytical skills."
+        else:
+            verdict = "❌ **Low Match:** Limited overlap with target candidate profile."
+
     return f"""
 ### Candidate Fit & Match Score Report — Radhika Dhama
 
@@ -78,29 +99,23 @@ def analyze_job_description_fit(job_description: str) -> str:
 ---
 
 #### Transparent Score Derivation & Weighted Breakdown:
-$$\\text{{Overall Match Score}} = (0.40 \\times \\text{{Skill Alignment}}) + (0.30 \\times \\text{{Academic Quality}}) + (0.30 \\times \\text{{Industry Experience}})$$
+$$\\text{{Overall Match Score}} = \\frac{{\\text{{Skill Alignment}}}}{{100}} \\times \\left(0.50 \\times \\text{{Skill Score}} + 0.25 \\times \\text{{Academic Quality}} + 0.25 \\times \\text{{Industry Experience}}\\right)$$
 
-1. **Skill Keyword Alignment (40% Weight): {skill_score}%**
-   - **Matched Core Technologies:** {', '.join([f'`{s}`' for s in matched]) if matched else 'Found strong quantitative statistics, machine learning, and analytical engineering background.'}
+1. **Skill Keyword Alignment (50% Weight): {skill_score}%**
+   - **Matched Core Technologies:** {', '.join([f'`{s}`' for s in matched]) if matched else 'None (No relevant technology keywords found in Job Description)'}
    - **Assessment:** Found {len(matched)} direct matching tech-stack keywords from target job description.
 
-2. **Academic & Research Rigor (30% Weight): {academic_score}%**
+2. **Academic & Research Rigor (25% Weight): {academic_score if matched else 0}%**
    - **M.Sc. in Data Science (CMI):** Advanced Machine Learning, Algorithm Design, Linear Algebra. (CGPA: 8.69)
    - **B.Sc. Statistics Hons (DU):** College Rank 1 (9.33 CGPA), IIT JAM AIR 66, GATE Stat AIR 142.
 
-3. **Practical Industry & Internship Experience (30% Weight): {experience_score}%**
+3. **Practical Industry & Internship Experience (25% Weight): {experience_score if matched else 0}%**
    - **Speech Fine-Tuning & LLMs:** Cut WER by 66.6% (0.92 -> 0.31) on Hindi TTS via 3-stage LoRA pipeline at Coriolis Technologies.
    - **Statistical ML & Security:** Designed per-class GMM + Relative Mahalanobis OOD detection with 99.59% accuracy across 41 classes.
-   - **Data QA:** Stress-tested solution-generation pipeline for Grade 8–12 Physics Tutor SLM.
 
 ---
 
-#### Candidate Profiles & Code Links:
-- **LinkedIn Profile:** https://www.linkedin.com/in/radhika-dhama/
-- **GitHub Profile:** https://github.com/RadhikaDhama
-- **Customer Personality Analysis Dashboard Repo:** https://github.com/RadhikaDhama/Customer-Personality-Analysis-Dashboard
-
-**Verdict:** Excellent candidate fit for AI Engineering, Machine Learning, Speech/LLM, Data Science, and Quantitative Analyst roles.
+**Verdict:** {verdict}
 """
 
 @tool
