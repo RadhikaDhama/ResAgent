@@ -14,24 +14,24 @@
 
 ## 🌟 Key Architecture & Features
 
-### 1. 🤖 RAG-Powered Agentic AI Copilot (Retrieval-Augmented Generation)
+### 1. RAG-Powered Agentic AI Copilot (Retrieval-Augmented Generation)
 * Built using **LangChain Tool-Calling Agents** and **FAISS Vector RAG**.
 * Dynamically retrieves relevant context from a curated vector database to answer queries about speech LLM fine-tuning (Orpheus-3B), statistical out-of-distribution (OOD) detection (GMM + Mahalanobis), quantitative portfolio SLSQP solvers, and academic ranks.
 
-### 2. 🎛️ Recruiter Role Perspective Switching
+### 2. Recruiter Role Perspective Switching
 * Switch between 4 target candidate profiles:
   1. **Graduate Engineer — AI & Full Stack (HP Inc)**
   2. **Speech & Generative AI ML Engineer**
   3. **Quantitative Analyst & Financial Risk**
   4. **Data Scientist & Statistical Modeler**
 
-### 3. 🎯 Transparent Job Description (JD) Alignment Studio
+### 3. Transparent Job Description (JD) Alignment Studio
 * Evaluates job descriptions with exact word-boundary technology matching and a strict domain relevance gate to output clear match reports and scores.
 
-### 4. 🐙 Live GitHub API Repository Integration
+### 4. Live GitHub API Repository Integration
 * Dynamically syncs public repositories live from `github.com/RadhikaDhama` using GitHub's REST API, automatically filtering projects by selected target role.
 
-### 5. 📊 Executive Skill Matrix Visualization
+### 5. Executive Skill Matrix Visualization
 * Interactive horizontal bar chart and polar radar chart mapping core competencies across deep learning, statistics, speech processing, and full-stack web development.
 
 ---
@@ -54,7 +54,7 @@ ResAgent/
 ## 🌐 Live Web Application
 
 Experience the live deployed application on Streamlit Cloud:
-👉 **[https://resagent-5cuarzs4hakuzhmpz7ygrl.streamlit.app/](https://resagent-5cuarzs4hakuzhmpz7ygrl.streamlit.app/)**
+ **[https://resagent-5cuarzs4hakuzhmpz7ygrl.streamlit.app/](https://resagent-5cuarzs4hakuzhmpz7ygrl.streamlit.app/)**
 
 ---
 
