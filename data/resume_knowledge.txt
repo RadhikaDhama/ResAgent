@@ -1,0 +1,80 @@
+===================================================================
+CANDIDATE PROFILE: Radhika Dhama
+Role Target: Graduate Engineer - AI & Full Stack (HP Inc, Bangalore)
+Email: radhika.dhama684@gmail.com
+Phone: (+91) 9720163553
+LinkedIn Profile: https://www.linkedin.com/in/radhika-dhama/
+GitHub Profile: https://github.com/RadhikaDhama
+===================================================================
+
+OFFICIAL SOCIAL & CODE REPOSITORY LINKS:
+- LinkedIn: https://www.linkedin.com/in/radhika-dhama/
+- GitHub Profile: https://github.com/RadhikaDhama
+- Customer Personality Analysis Dashboard Repository: https://github.com/RadhikaDhama/Customer-Personality-Analysis-Dashboard
+
+PROFILE SUMMARY:
+Master’s student in Data Science at Chennai Mathematical Institute (CMI) with strong analytical skills, rigorous statistical foundation, and hands-on experience in LLM fine-tuning, out-of-distribution (OOD) detection, portfolio optimization, and full-stack web application development.
+
+EDUCATION:
+1. Chennai Mathematical Institute (CMI) — M.Sc. in Data Science (2025 – Present)
+   - CGPA: 8.69 / 10.00
+   - Key Courses: Statistics with R, Python, Visualisation, Algorithm Design Techniques, Data Mining and Machine Learning, Linear Algebra.
+
+2. University of Delhi (Ramanujan College) — B.Sc. in Statistics Hons. (2021 – 2024)
+   - CGPA: 9.33 / 10.00 (Rank 1 Holder)
+   - Key Courses: Time Series Analysis, Operation Research, Stochastic Process and Queuing Theory, Statistical Inference, Regression, Linear Models.
+
+KEY ACHIEVEMENTS:
+- IIT JAM Mathematical Statistics: All India Rank (AIR) 66 (2025)
+- GATE Statistics: All India Rank (AIR) 142 (2025)
+- College Rank 1 Holder: Ramanujan College, University of Delhi (2024)
+- Accenture Strategy Connect Season 4: Final Round Qualifier & PPI Recipient (Team ConsultIQ, 2025)
+
+INTERNSHIP EXPERIENCE:
+Coriolis Technologies Pvt Ltd (Intern) — Summer 2026
+Tech Stack: Python, PyTorch, LoRA, Unsloth, LLMs, Scikit-learn, Whisper (ASR), ECAPA-TDNN, wav2vec2, GMM, LaTeX, JSON, Git.
+
+Project 1: Hindi TTS Fine-Tuning (Orpheus-3B) — Python, PyTorch, LoRA, Unsloth, LLMs
+- Diagnosed a pre-trained English speech model's complete failure on Hindi (92% Word Error Rate), tracing the collapse to unseen vocabulary, long-sentence instability, and inconsistent voice output.
+- Executed a 3-stage LoRA fine-tuning pipeline — pronunciation alignment, speaker-voice consistency, and 7-emotion expressiveness — cutting Word Error Rate (WER) by 66.6% (0.92 -> 0.31) and Character Error Rate (CER) by 82.4% (0.85 -> 0.15).
+- Built an evaluation system on a 500-sample benchmark, using Whisper (ASR) for pronunciation accuracy, ECAPA-TDNN speaker embeddings for voice consistency, and a wav2vec2 emotion classifier for tone quality, and proposed a reinforcement-learning approach to further close the emotional-expressiveness gap.
+
+Project 2: Statistical OOD Detection for Document Classification — Python, Scikit-learn, GMM
+- Designed a statistically trained OOD-rejection layer (per-class Gaussian Mixture Models + Relative Mahalanobis Distance on frozen DL embeddings, 41 classes) with a meta-classifier head, replacing hardcoded distance rules with a new "Others" class — achieving 99% OOD recall and 99.59% overall accuracy, raising valid-document accuracy from 75% to 89%.
+
+Project 3: Data Quality Assurance for SLM Physics Tutor — Manual QA, LaTeX, JSON, Git
+- Stress-tested the full solution-generation pipeline of an SLM-based Physics Tutor (Grade 8–12), systematically surfacing LaTeX rendering failures, JSON schema errors, prompt-step mismatches, and unit/dimensional inconsistencies.
+- Fed structured bug reports back into the training-data pipeline, improving data quality and downstream model reliability.
+
+PROJECTS:
+1. Customer Personality Analysis Dashboard (2025) — Python, Streamlit
+- Built an interactive Streamlit dashboard analyzing 2,000+ customers demographics, spending behavior, and campaign performance, with dynamic filters and KPI panels.
+- Performed univariate, bivariate, and multivariate analysis using correlation heatmaps to uncover key spending and engagement patterns across customer segments.
+- Deployed the dashboard live on Streamlit Cloud, translating raw data into actionable insights for marketing and revenue optimization.
+- GitHub Repository: https://github.com/RadhikaDhama/Customer-Personality-Analysis-Dashboard
+
+2. Portfolio Optimization & Risk-Adjusted Asset Allocation (2026) — Python, SciPy, NumPy, Pandas
+- Built a constrained mean-variance portfolio optimization framework on a Nifty stock universe, comparing Equal-Weight, Global Minimum-Variance, and Max-Sharpe portfolios via closed-form (Sigma^-1) and SLSQP-based constrained solvers.
+- Implemented and compared sample vs. dual-half-life EWMA covariance estimation to test optimized-weight sensitivity to volatility/correlation regime shifts, validated through walk-forward out-of-sample backtesting.
+- Extended the framework with historical and parametric Value-at-Risk and Conditional VaR at 95% confidence to quantify tail-risk exposure beyond volatility alone.
+
+3. CreditRisk: Predicting Borrower Reliability (2026) — Python, Scikit-learn, XGBoost, LightGBM
+- Built a credit card default prediction pipeline comparing tree-based, gradient-boosting, and distance-based classifiers (Random Forest, XGBoost, LightGBM, SVM, KNN) on demographic and credit-behavior features, addressing class imbalance via SMOTE oversampling on the training set.
+- Prioritized Recall over raw accuracy to minimize missed defaulters, achieving 97.4% accuracy with Gradient Boosting Classifier, and computed feature importance across tree-based and gradient-boosting models to identify consistent default-risk drivers.
+
+4. ResAgent: Agentic AI Portfolio & Candidate Match Copilot (2026) — Python, LangChain, Gemini API, FAISS, Streamlit
+- Developed an interactive Agentic AI web app using LangChain and Google Gemini API that enables real-time, conversational exploration of technical qualifications and project repositories.
+
+EXTRA-CURRICULARS:
+Accenture Strategy Connect Season 4 | Final Round Qualifier & PPI Recipient, Team ConsultIQ (2025)
+
+POSITIONS OF RESPONSIBILITY:
+- Head - Alumni Council, Ramanujan College, University of Delhi (2024)
+- Coordinator - Encephal, Statistics Society, Ramanujan College, University of Delhi (2022 – 2024)
+
+TECHNICAL SKILLS:
+- Programming/Tools: Python, Pandas, Numpy, R, SQL, LaTeX, Excel, Streamlit, R Shiny, Git/GitHub, WandB
+- Machine Learning: Scikit-Learn, Linear and Logistic Regression, Feature Engineering, Clustering, Boosting, Random Forest
+- Deep Learning / LLMs: PyTorch, LoRA, Unsloth, Transformer Fine-Tuning, Gaussian Mixture Models, Whisper (ASR), TTS, Hugging Face
+- Statistics: Hypothesis Testing, Regression, Linear Models, Inference, Statistical Quality Control, Time Series Analysis, Survey Sampling, Mahalanobis Distance
+- Visualisation: Plotly, Dashboards, Data Visualisation

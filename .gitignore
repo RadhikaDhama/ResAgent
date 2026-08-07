@@ -1,0 +1,19 @@
+# Ignore Python bytecode & cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore environment variables & venv
+.env
+.venv/
+venv/
+ENV/
+
+# Ignore IDE & system files
+.DS_Store
+.vscode/
+.idea/
+
+# Ignore temporary scratch test files
+test_*.py
+test_out.txt
