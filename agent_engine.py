@@ -80,16 +80,16 @@ def analyze_job_description_fit(job_description: str) -> str:
     if not matched:
         skill_score = 0
         overall_fit_score = 0
-        verdict = "❌ **Domain Mismatch:** This job description does not match Radhika Dhama's core domain (Data Science, AI, Speech LLMs, Quantitative Risk)."
+        verdict = "**Domain Mismatch:** This job description does not match Radhika Dhama's core domain (Data Science, AI, Speech LLMs, Quantitative Risk)."
     else:
         skill_score = min(100, int((len(matched) / 4.0) * 100))
         overall_fit_score = int((skill_score / 100.0) * (0.50 * skill_score + 0.25 * academic_score + 0.25 * experience_score))
         if overall_fit_score >= 80:
-            verdict = "✅ **Strong Match:** Excellent candidate fit for AI Engineering, Machine Learning, Speech/LLM, Data Science, or Quantitative Analyst roles."
+            verdict = "**Strong Match:** Excellent candidate fit for AI Engineering, Machine Learning, Speech/LLM, Data Science, or Quantitative Analyst roles."
         elif overall_fit_score >= 50:
-            verdict = "⚠️ **Moderate Match:** Partial technology stack match with strong core academic analytical skills."
+            verdict = "**Moderate Match:** Partial technology stack match with strong core academic analytical skills."
         else:
-            verdict = "❌ **Low Match:** Limited overlap with target candidate profile."
+            verdict = "**Low Match:** Limited overlap with target candidate profile."
 
     return f"""
 ### Candidate Fit & Match Score Report — Radhika Dhama
