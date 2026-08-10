@@ -1,4 +1,4 @@
-# 🚀 ResAgent: Agentic AI Portfolio & Candidate Match Copilot
+# ResAgent: Agentic AI Portfolio & Candidate Match Copilot
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit%20Cloud-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://resagent-5cuarzs4hakuzhmpz7ygrl.streamlit.app/)
 ![LangChain RAG](https://img.shields.io/badge/LangChain-RAG%20Agent-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)
@@ -12,7 +12,7 @@
 
 ---
 
-## 🌟 Key Architecture & Features
+## Key Architecture & Features
 
 ### 1. RAG-Powered Agentic AI Copilot (Retrieval-Augmented Generation)
 * Built using **LangChain Tool-Calling Agents** and **FAISS Vector RAG**.
@@ -36,7 +36,7 @@
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 ResAgent/
@@ -51,14 +51,14 @@ ResAgent/
 
 ---
 
-## 🌐 Live Web Application
+## Live Web Application
 
 Experience the live deployed application on Streamlit Cloud:
  **[https://resagent-5cuarzs4hakuzhmpz7ygrl.streamlit.app/](https://resagent-5cuarzs4hakuzhmpz7ygrl.streamlit.app/)**
 
 ---
 
-## 💻 Local Installation & Setup
+## Local Installation & Setup
 
 1. **Clone the Repository:**
    ```bash
@@ -78,7 +78,7 @@ Experience the live deployed application on Streamlit Cloud:
 
 ---
 
-## 📄 Candidate Profile Summary
+## Candidate Profile Summary
 
 * **Candidate:** Radhika Dhama
 * **Education:** M.Sc. Data Science @ Chennai Mathematical Institute (CGPA: 8.69) | B.Sc. Statistics Hons @ DU (College Rank 1, CGPA: 9.33)
