@@ -386,41 +386,41 @@ if nav_selection == "ResAgent Copilot":
     c1, c2, c3, c4 = st.columns(4)
     selected_prompt = None
     if "HP" in target_role or "Full Stack" in target_role:
-        if c1.button("Full-Stack AI Skills"):
-            selected_prompt = "What are Radhika's strongest skills for a full-stack AI engineering role, covering both backend ML and frontend deployment?"
-        if c2.button("Hindi TTS LoRA Pipeline"):
-            selected_prompt = "Tell me about her Hindi TTS fine-tuning project and 66.6% WER reduction."
-        if c3.button("Statistical OOD Rejection"):
-            selected_prompt = "Explain her GMM and Mahalanobis distance OOD rejection system."
-        if c4.button("Streamlit Web Dashboard"):
-            selected_prompt = "Show me her Customer Personality Streamlit Dashboard project details."
+        if c1.button("Candidate Summary"):
+            selected_prompt = "Summarize the candidate's education, skills, and internship experience."
+        if c2.button("Technical Skills"):
+            selected_prompt = "What programming languages, ML frameworks, and tools does the candidate know?"
+        if c3.button("Internship Projects"):
+            selected_prompt = "What projects were completed during the industry internship?"
+        if c4.button("Why Hire?"):
+            selected_prompt = "Why should we hire this candidate for an AI engineering role?"
     elif "Speech" in target_role:
-        if c1.button("Hindi TTS Orpheus-3B"):
-            selected_prompt = "Explain her 3-stage LoRA fine-tuning for Hindi TTS and WER metrics."
-        if c2.button("Speech Evaluation Benchmark"):
-            selected_prompt = "How did she use Whisper ASR and ECAPA-TDNN for speech evaluation?"
-        if c3.button("Show LoRA Code Snippet"):
-            selected_prompt = "Show me the technical code snippet for her LoRA fine-tuning pipeline."
-        if c4.button("SLM Physics QA Testing"):
-            selected_prompt = "What solution-generation pipeline testing did she perform for SLM Physics Tutor?"
+        if c1.button("Speech Projects"):
+            selected_prompt = "Describe the candidate's speech and audio ML project experience."
+        if c2.button("Deep Learning Stack"):
+            selected_prompt = "What deep learning and LLM frameworks has the candidate used?"
+        if c3.button("Key Metrics"):
+            selected_prompt = "What measurable results were achieved in ML projects?"
+        if c4.button("OOD Detection"):
+            selected_prompt = "Explain the statistical OOD detection work and its accuracy."
     elif "Quantitative" in target_role:
-        if c1.button("Mean-Variance Portfolio"):
-            selected_prompt = "Explain her Nifty portfolio optimization framework using SLSQP solvers."
-        if c2.button("Value-at-Risk (VaR)"):
-            selected_prompt = "How did she implement historical and parametric VaR/CVaR at 95% confidence?"
-        if c3.button("CreditRisk Defaulters"):
-            selected_prompt = "Explain her CreditRisk default prediction pipeline and SMOTE oversampling."
-        if c4.button("Show Portfolio Code"):
-            selected_prompt = "Show me the Python optimization code for her portfolio risk project."
+        if c1.button("Stats Background"):
+            selected_prompt = "What is the candidate's academic foundation in statistics?"
+        if c2.button("Risk Projects"):
+            selected_prompt = "Describe the credit risk and financial modeling projects."
+        if c3.button("Quant Tools"):
+            selected_prompt = "What quantitative and statistical tools has the candidate used?"
+        if c4.button("Exam Ranks"):
+            selected_prompt = "What are the candidate's competitive exam ranks and academic scores?"
     else:
-        if c1.button("Academic Achievements"):
-            selected_prompt = "What are Radhika's rank achievements in IIT JAM, GATE Stat, and CMI CGPA?"
-        if c2.button("Accenture Strategy S4"):
-            selected_prompt = "Tell me about her Accenture Strategy Connect Season 4 PPI award."
-        if c3.button("GMM OOD Rejection Layer"):
-            selected_prompt = "Explain her per-class Gaussian Mixture Models OOD rejection paper."
-        if c4.button("Full Candidate Overview"):
-            selected_prompt = "Provide a comprehensive summary of Radhika's background and core strengths."
+        if c1.button("Candidate Overview"):
+            selected_prompt = "Give a comprehensive overview of the candidate's background and strengths."
+        if c2.button("ML Projects"):
+            selected_prompt = "What machine learning projects were built and what results were achieved?"
+        if c3.button("Education"):
+            selected_prompt = "Summarize the candidate's academic qualifications and coursework."
+        if c4.button("Internship Impact"):
+            selected_prompt = "What measurable impact was delivered during the data science internship?"
 
     if "messages" not in st.session_state:
         st.session_state.messages = [{"role": "assistant", "content": "Welcome. I am **ResAgent**, Radhika's portfolio copilot. Ask anything about her resume, technical projects, or candidate fit."}]
