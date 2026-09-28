@@ -210,6 +210,13 @@ def extract_clean_text(ans_content) -> str:
         return "\n".join(parts) if parts else str(ans_content)
     return str(ans_content)
 
+def clean_markdown_output(text: str) -> str:
+    cleaned = extract_clean_text(text)
+    # Remove ASCII horizontal divider lines (===, ---, ___) that trigger Setext markdown header bugs
+    cleaned = re.sub(r'^[=\-_]{3,}\s*$', '', cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r'\n[=\-]{3,}\n', '\n\n', cleaned)
+    return cleaned.strip()
+
 class ResAgentEngine:
     def __init__(self, api_key: str = None):
         if not api_key:
@@ -236,12 +243,12 @@ class ResAgentEngine:
         user_text = inputs.get("input", "")
         role = inputs.get("role", "")
         system_prompt = (
-            "You are ResAgent, an AI copilot for Radhika Dhama. "
-            f"The recruiter is hiring for: {role}. "
-            "Emphasize the parts of her background most relevant to that role. "
-            "For ANY question about Radhika, first call search_candidate_portfolio "
-            "and answer only from the retrieved text. "
-            "If the retrieved text does not contain the answer, say so."
+            "You are ResAgent, an executive AI copilot for Radhika Dhama's portfolio. "
+            f"The recruiter is evaluating candidate fit for: {role}. "
+            "Formulate responses in clean, beautifully structured Markdown with standard subheadings (###). "
+            "Do NOT use ASCII divider lines such as '=======' or '-------'. "
+            "Format links as clean hyperlinked Markdown text, e.g. [LinkedIn](https://...) and [GitHub](https://...). "
+            "For ANY question about Radhika, call search_candidate_portfolio and answer accurately from retrieved context."
         )
         full_query = f"{system_prompt}\n\nUser Question: {user_text}"
         try:
@@ -259,14 +266,21 @@ class ResAgentEngine:
                         tool_res = tool_func.invoke(arg_val)
                         tool_outputs.append(f"{tool_res}")
                 context_str = "\n\n".join(tool_outputs)
-                final_prompt = f"User Question: {user_text}\n\nRetrieved Data:\n{context_str}\n\nProvide a concise, tailored Markdown response addressing the question directly:"
+                final_prompt = (
+                    f"System: Respond in professional Markdown. Avoid ASCII lines like '======='. Format links as [Name](URL).\n"
+                    f"Target Role: {role}\n"
+                    f"User Question: {user_text}\n\n"
+                    f"Retrieved Data:\n{context_str}\n\n"
+                    f"Answer:"
+                )
                 final_ans = self.llm.invoke(final_prompt)
-                return {"output": extract_clean_text(final_ans.content), "tools_used": tools_used}
+                return {"output": clean_markdown_output(final_ans.content), "tools_used": tools_used}
             else:
-                return {"output": extract_clean_text(ai_msg.content), "tools_used": []}
+                return {"output": clean_markdown_output(ai_msg.content), "tools_used": []}
         except Exception as e:
             vs_docs = search_candidate_portfolio.invoke(user_text)
-            return {"output": f"### Candidate Information — Radhika Dhama\n\n{vs_docs}", "tools_used": ["search_candidate_portfolio (fallback)"]}
+            clean_docs = clean_markdown_output(vs_docs)
+            return {"output": f"### Candidate Summary — Radhika Dhama\n\n{clean_docs}", "tools_used": ["search_candidate_portfolio (fallback)"]}
 
 def get_resagent_executor(api_key: str = None):
     return ResAgentEngine(api_key or get_default_api_key())

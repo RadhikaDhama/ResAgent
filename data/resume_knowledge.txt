@@ -1,11 +1,9 @@
-===================================================================
-CANDIDATE PROFILE: Radhika Dhama
-Role Target: Graduate Engineer - AI & Full Stack (HP Inc, Bangalore)
-Email: radhika.dhama684@gmail.com
-Phone: (+91) 9720163553
-LinkedIn Profile: https://www.linkedin.com/in/radhika-dhama/
-GitHub Profile: https://github.com/RadhikaDhama
-===================================================================
+## CANDIDATE PROFILE: Radhika Dhama
+- Role Target: Graduate Engineer - AI & Full Stack (HP Inc, Bangalore)
+- Email: radhika.dhama684@gmail.com
+- Phone: (+91) 9720163553
+- LinkedIn Profile: https://www.linkedin.com/in/radhika-dhama/
+- GitHub Profile: https://github.com/RadhikaDhama
 
 OFFICIAL SOCIAL & CODE REPOSITORY LINKS:
 - LinkedIn: https://www.linkedin.com/in/radhika-dhama/
