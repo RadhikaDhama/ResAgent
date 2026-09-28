@@ -110,11 +110,6 @@ def analyze_job_description_fit(job_description: str) -> str:
         resume_chunks = vs.similarity_search(job_description, k=6)
         resume_context = "\n".join([doc.page_content for doc in resume_chunks])
         
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=get_default_api_key(),
-            temperature=0.2
-        )
         grounding_prompt = (
             "Based ONLY on the retrieved resume context below, write a 3-4 sentence "
             "qualitative fit assessment for this candidate against the job description. "
@@ -126,10 +121,25 @@ def analyze_job_description_fit(job_description: str) -> str:
             f"Missing Skills: {', '.join(missing) if missing else 'None'}\n\n"
             "Qualitative Assessment:"
         )
-        qual_response = llm.invoke(grounding_prompt)
-        qualitative_section = extract_clean_text(qual_response.content)
-    except Exception:
-        qualitative_section = "Qualitative assessment unavailable (API error)."
+
+        api_key = get_default_api_key()
+        model_candidates = ["gemini-flash-latest", "gemini-2.0-flash-lite", "gemini-3.6-flash", "gemini-2.0-flash", "gemini-pro"]
+        llm = None
+        for model_name in model_candidates:
+            try:
+                llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.2)
+                qual_response = llm.invoke(grounding_prompt)
+                qualitative_section = extract_clean_text(qual_response.content)
+                break
+            except Exception as ex:
+                llm = None
+                err_msg = str(ex)
+                continue
+                
+        if not qualitative_section:
+            qualitative_section = f"Qualitative assessment unavailable ({err_msg if 'err_msg' in locals() else 'API key required'})."
+    except Exception as e:
+        qualitative_section = f"Qualitative assessment unavailable ({str(e)})."
     
     return f"""
 ### Candidate Fit Report — Radhika Dhama
