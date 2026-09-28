@@ -196,11 +196,23 @@ css_styles = """
 """
 st.markdown(css_styles, unsafe_allow_html=True)
 
-# Helper Function: Live GitHub API Repository Fetcher
+# Helper Function: Live GitHub API Repository Fetcher (Authenticated & Rate-limit Resilient)
 @st.cache_data(ttl=3600)
 def fetch_github_repos(username="RadhikaDhama"):
     url = f"https://api.github.com/users/{username}/repos?sort=updated&per_page=30"
-    req = urllib.request.Request(url, headers={"User-Agent": "ResAgent-Portfolio"})
+    headers = {"User-Agent": "ResAgent-Portfolio"}
+    token = None
+    try:
+        if hasattr(st, "secrets") and "GITHUB_TOKEN" in st.secrets:
+            token = st.secrets["GITHUB_TOKEN"]
+    except Exception:
+        pass
+    if not token:
+        token = os.environ.get("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    req = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=5) as response:
             if response.status == 200:
@@ -216,10 +228,14 @@ def fetch_github_repos(username="RadhikaDhama"):
                             "topics": item.get("topics", []),
                             "updated_at": item.get("updated_at", "")[:10]
                         })
-                return repos
-    except Exception:
-        pass
-    return []
+                return repos, None
+    except urllib.error.HTTPError as e:
+        if e.code == 403:
+            return [], "GitHub API rate limit reached. Set GITHUB_TOKEN in st.secrets for up to 5,000 req/hr."
+        return [], f"GitHub API error: HTTP {e.code}"
+    except Exception as e:
+        return [], f"Unable to fetch GitHub repositories ({str(e)})"
+    return [], "No repositories found."
 
 def filter_repos_for_role(repos, role):
     if not repos:
@@ -370,8 +386,8 @@ if nav_selection == "ResAgent Copilot":
     c1, c2, c3, c4 = st.columns(4)
     selected_prompt = None
     if "HP" in target_role or "Full Stack" in target_role:
-        if c1.button("Evaluate Match for HP JD"):
-            selected_prompt = "Evaluate Radhika's profile for the HP Graduate Engineer AI & Full Stack position."
+        if c1.button("Full-Stack AI Skills"):
+            selected_prompt = "What are Radhika's strongest skills for a full-stack AI engineering role, covering both backend ML and frontend deployment?"
         if c2.button("Hindi TTS LoRA Pipeline"):
             selected_prompt = "Tell me about her Hindi TTS fine-tuning project and 66.6% WER reduction."
         if c3.button("Statistical OOD Rejection"):
@@ -428,9 +444,14 @@ if nav_selection == "ResAgent Copilot":
             with st.spinner("ResAgent processing inquiry..."):
                 try:
                     executor = get_resagent_executor()
-                    response = executor.invoke({"input": prompt_to_run, "chat_history": st.session_state.chat_history})
+                    response = executor.invoke({"input": prompt_to_run, "chat_history": st.session_state.chat_history, "role": target_role})
                     answer = response["output"]
                     st.markdown(answer)
+                    tools_used = response.get("tools_used", [])
+                    if tools_used:
+                        st.caption("Tools routed: " + ", ".join(tools_used))
+                    else:
+                        st.caption("Tools routed: direct LLM response")
                     st.session_state.messages.append({"role": "assistant", "content": answer})
                     st.session_state.chat_history.append(HumanMessage(content=prompt_to_run))
                     st.session_state.chat_history.append(AIMessage(content=answer))
@@ -521,73 +542,19 @@ elif nav_selection == "Academic & Risk Projects":
     st.markdown(f"""
     <div class="header-container">
         <div class="hero-title">Academic Projects & GitHub Repositories</div>
-        <div class="hero-subtitle">Filtered Perspective: <b>{target_role}</b> | Live Integration with <a href="https://github.com/RadhikaDhama" target="_blank" style="color:#38BDF8;">github.com/RadhikaDhama</a></div>
+        <div class="hero-subtitle">Filtered Perspective: <b>{target_role}</b> | Dynamic Integration with <a href="https://github.com/RadhikaDhama" target="_blank" style="color:#38BDF8;">github.com/RadhikaDhama</a></div>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("### Featured Core Projects")
-    pcol1, pcol2 = st.columns(2)
-    with pcol1:
-        st.markdown("""
-        <div class="project-card">
-            <h3>Customer Personality Analysis Dashboard</h3>
-            <div>
-                <span class="tech-tag">Python</span>
-                <span class="tech-tag">Streamlit</span>
-                <span class="tech-tag">Plotly</span>
-                <span class="tech-tag">Pandas</span>
-            </div>
-            <p>Built an interactive web analytics dashboard examining 2,000+ customer demographics, spending behaviors, and campaign response metrics with dynamic KPI panels and correlation heatmaps.</p>
-            <p><b>GitHub Repository:</b> <a href="https://github.com/RadhikaDhama/Customer-Personality-Analysis-Dashboard" target="_blank">RadhikaDhama/Customer-Personality-Analysis-Dashboard</a></p>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("""<div style="height:12px;"></div>""", unsafe_allow_html=True)
-        st.markdown("""
-        <div class="project-card">
-            <h3>CreditRisk Defaulter Prediction</h3>
-            <div>
-                <span class="tech-tag">Python</span>
-                <span class="tech-tag">XGBoost</span>
-                <span class="tech-tag">LightGBM</span>
-                <span class="tech-tag">SMOTE</span>
-            </div>
-            <p>Credit default prediction pipeline prioritizing Recall over raw accuracy to minimize missed defaulters. Handled severe class imbalance via SMOTE oversampling, achieving <b>97.4% accuracy</b>.</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with pcol2:
-        st.markdown("""
-        <div class="project-card">
-            <h3>Portfolio Optimization & Risk Allocation</h3>
-            <div>
-                <span class="tech-tag">Python</span>
-                <span class="tech-tag">SciPy (SLSQP)</span>
-                <span class="tech-tag">EWMA</span>
-                <span class="tech-tag">VaR / CVaR</span>
-            </div>
-            <p>Constrained mean-variance portfolio optimization framework on Nifty stocks comparing Max-Sharpe and Minimum-Variance portfolios via SLSQP solvers. Extended with historical & parametric VaR/CVaR at 95% confidence.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("""<div style="height:12px;"></div>""", unsafe_allow_html=True)
-        st.markdown("""
-        <div class="project-card">
-            <h3>ResAgent Agentic AI Copilot</h3>
-            <div>
-                <span class="tech-tag">LangChain</span>
-                <span class="tech-tag">Google Gemini</span>
-                <span class="tech-tag">FAISS RAG</span>
-                <span class="tech-tag">Streamlit</span>
-            </div>
-            <p>Interactive AI agent routing user questions between RAG vector search, heuristic job-match engines, and dynamic code architecture viewers with 100% fail-safe fallback logic.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("---")
     st.markdown("### 🐙 Live Repositories from GitHub Profile")
     st.caption(f"Dynamically fetched live from github.com/RadhikaDhama and filtered for target role: '{target_role}'")
     
     with st.spinner("Fetching repositories live from GitHub API..."):
-        all_repos = fetch_github_repos("RadhikaDhama")
+        all_repos, error_msg = fetch_github_repos("RadhikaDhama")
         role_repos = filter_repos_for_role(all_repos, target_role)
+
+    if error_msg:
+        st.warning(f"⚠️ {error_msg}")
 
     if role_repos:
         gcol1, gcol2 = st.columns(2)
@@ -678,7 +645,7 @@ elif nav_selection == "Technical Competencies":
         st.markdown("**Primary Skill Distribution:**")
         st.markdown("- **Deep Learning & Speech:** PyTorch, LoRA, Unsloth, Transformers, Whisper (ASR), wav2vec2, ECAPA-TDNN")
         st.markdown("- **Machine Learning:** Scikit-learn, GMM, XGBoost, LightGBM, Random Forest, Clustering, SMOTE")
-        st.markdown("- **LLMs & Agentic AI:** LangChain, LangGraph, RAG, Function Calling, FAISS, Gemini API")
+        st.markdown("- **LLMs & Agentic AI:** LangChain, RAG, Function Calling, FAISS, Gemini API")
         st.markdown("- **Statistics:** Hypothesis Testing, Linear Models, Statistical Inference, Time Series, Mahalanobis Distance")
         st.markdown("- **Programming & Web:** Python, R, SQL, Streamlit, Plotly, LaTeX, Git/GitHub, WandB")
 

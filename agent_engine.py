@@ -1,6 +1,5 @@
 import os
 import re
-import base64
 import streamlit as st
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -10,9 +9,9 @@ from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 _VECTORSTORE = None
-_B64_KEY = "QVEuQWI4Uk42SUE2WGFCRUpRMGZXWXN4YmdWT2V3aHBOeUtDMUxsdWpRb3VUMHhGWkp4WXc="
 
 def get_default_api_key():
+    """Read API key from environment variable or Streamlit secrets only."""
     env_key = os.getenv("GOOGLE_API_KEY", "")
     if env_key:
         return env_key
@@ -21,10 +20,7 @@ def get_default_api_key():
             return st.secrets["GOOGLE_API_KEY"]
     except Exception:
         pass
-    try:
-        return base64.b64decode(_B64_KEY).decode("utf-8")
-    except Exception:
-        return ""
+    return ""
 
 def get_or_build_vectorstore():
     global _VECTORSTORE
@@ -58,60 +54,96 @@ def search_candidate_portfolio(query: str) -> str:
 
 @tool
 def analyze_job_description_fit(job_description: str) -> str:
-    """Evaluates how well Radhika Dhama fits a given Job Description (JD) text provided by a recruiter with a transparent score breakdown."""
-    candidate_skills = [
+    """Evaluates how well Radhika Dhama fits a given Job Description (JD) using transparent skill coverage and RAG-grounded qualitative analysis."""
+    
+    # Radhika's actual skills (what she has)
+    candidate_skills = {
         "Python", "PyTorch", "Machine Learning", "Statistics", "LangChain", 
         "LLMs", "Streamlit", "GMM", "SQL", "Git", "Plotly", "LoRA", 
         "Unsloth", "Whisper", "wav2vec2", "RAG", "OOD", "ASR", 
-        "Deep Learning", "Data Science", "R"
-    ]
+        "Deep Learning", "Data Science", "R", "Pandas", "NumPy",
+        "Scikit-learn", "XGBoost", "LightGBM", "SMOTE", "LaTeX",
+        "Hugging Face", "FAISS", "SciPy", "EWMA", "Streamlit Cloud"
+    }
+    
+    # Broader vocabulary — includes skills Radhika does NOT have
+    # so coverage can realistically be < 100%
+    jd_vocabulary = candidate_skills | {
+        "React", "JavaScript", "TypeScript", "Node.js", "Docker", "Kubernetes",
+        "AWS", "GCP", "Azure", "Java", "C++", "Go", "Rust", "Scala", "Spark",
+        "Kafka", "Airflow", "MLflow", "Terraform", "CI/CD", "REST API",
+        "MongoDB", "PostgreSQL", "Redis", "GraphQL", "TensorFlow", "Keras",
+        "Computer Vision", "NLP", "Tableau", "Power BI", "Excel", "MATLAB",
+        "Hadoop", "Hive", "Databricks", "Flask", "Django", "FastAPI",
+        "HTML", "CSS", "Vue", "Angular", "Spring Boot", "Microservices"
+    }
+    
     jd_lower = job_description.lower() if job_description else ""
     
-    # Exact word boundary matching (prevents false positives like 'r' matching 'pastry')
-    matched = []
-    for skill in candidate_skills:
+    # Step 1: Find which skills from the vocabulary appear in the JD
+    jd_mentioned = []
+    for skill in jd_vocabulary:
         pattern = r'\b' + re.escape(skill.lower()) + r'\b'
         if re.search(pattern, jd_lower):
-            matched.append(skill)
+            jd_mentioned.append(skill)
     
-    academic_score = 98
-    experience_score = 92
+    # Step 2: Which of those does Radhika actually have?
+    matched = [s for s in jd_mentioned if s in candidate_skills]
+    missing = [s for s in jd_mentioned if s not in candidate_skills]
     
-    if not matched:
-        skill_score = 0
-        overall_fit_score = 0
-        verdict = "**Domain Mismatch:** This job description does not match Radhika Dhama's core domain (Data Science, AI, Speech LLMs, Quantitative Risk)."
+    if not jd_mentioned:
+        coverage_pct = 0
+        verdict = "**Domain Mismatch:** No recognizable technology keywords found in this job description."
     else:
-        skill_score = min(100, int((len(matched) / 4.0) * 100))
-        overall_fit_score = int((skill_score / 100.0) * (0.50 * skill_score + 0.25 * academic_score + 0.25 * experience_score))
-        if overall_fit_score >= 80:
-            verdict = "**Strong Match:** Excellent candidate fit for AI Engineering, Machine Learning, Speech/LLM, Data Science, or Quantitative Analyst roles."
-        elif overall_fit_score >= 50:
-            verdict = "**Moderate Match:** Partial technology stack match with strong core academic analytical skills."
+        coverage_pct = int((len(matched) / len(jd_mentioned)) * 100)
+        if coverage_pct >= 70:
+            verdict = "**Strong Match:** High skill coverage for this role."
+        elif coverage_pct >= 40:
+            verdict = "**Moderate Match:** Partial skill overlap with transferable foundations."
         else:
-            verdict = "**Low Match:** Limited overlap with target candidate profile."
-
+            verdict = "**Low Match:** Limited technology overlap with this job description."
+    
+    # Step 3: RAG-grounded qualitative assessment via FAISS + Gemini
+    qualitative_section = ""
+    try:
+        vs = get_or_build_vectorstore()
+        resume_chunks = vs.similarity_search(job_description, k=6)
+        resume_context = "\n".join([doc.page_content for doc in resume_chunks])
+        
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash",
+            google_api_key=get_default_api_key(),
+            temperature=0.2
+        )
+        grounding_prompt = (
+            "Based ONLY on the retrieved resume context below, write a 3-4 sentence "
+            "qualitative fit assessment for this candidate against the job description. "
+            "Highlight specific experience that maps to JD requirements, and note gaps honestly. "
+            "Do NOT invent skills or experience not in the context.\n\n"
+            f"Job Description:\n{job_description}\n\n"
+            f"Retrieved Resume Context:\n{resume_context}\n\n"
+            f"Matched Skills: {', '.join(matched) if matched else 'None'}\n"
+            f"Missing Skills: {', '.join(missing) if missing else 'None'}\n\n"
+            "Qualitative Assessment:"
+        )
+        qual_response = llm.invoke(grounding_prompt)
+        qualitative_section = extract_clean_text(qual_response.content)
+    except Exception:
+        qualitative_section = "Qualitative assessment unavailable (API error)."
+    
     return f"""
-### Candidate Fit & Match Score Report — Radhika Dhama
+### Candidate Fit Report — Radhika Dhama
 
-**Overall Candidate Match Score: {overall_fit_score} / 100**
+**Skill Coverage Score: {coverage_pct}%** ({len(matched)} / {len(jd_mentioned)} JD skills matched)
 
 ---
 
-#### Score Calculation Weighting:
-`50% Skill Alignment` | `25% Academic Quality` | `25% Industry Experience`
+#### Skill Breakdown:
+- **Matched:** {', '.join([f'`{s}`' for s in matched]) if matched else 'None'}
+- **Missing:** {', '.join([f'`{s}`' for s in missing]) if missing else 'None — full coverage'}
 
-1. **Skill Keyword Alignment (50% Weight): {skill_score}%**
-   - **Matched Core Technologies:** {', '.join([f'`{s}`' for s in matched]) if matched else 'None (No relevant technology keywords found in Job Description)'}
-   - **Assessment:** Found {len(matched)} direct matching tech-stack keywords from target job description.
-
-2. **Academic & Research Rigor (25% Weight): {academic_score if matched else 0}%**
-   - **M.Sc. in Data Science (CMI):** Advanced Machine Learning, Algorithm Design, Linear Algebra. (CGPA: 8.69)
-   - **B.Sc. Statistics Hons (DU):** College Rank 1 (9.33 CGPA), IIT JAM AIR 66, GATE Stat AIR 142.
-
-3. **Practical Industry & Internship Experience (25% Weight): {experience_score if matched else 0}%**
-   - **Speech Fine-Tuning & LLMs:** Cut WER by 66.6% (0.92 -> 0.31) on Hindi TTS via 3-stage LoRA pipeline at Coriolis Technologies.
-   - **Statistical ML & Security:** Designed per-class GMM + Relative Mahalanobis OOD detection with 99.59% accuracy across 41 classes.
+#### RAG-Grounded Qualitative Assessment:
+{qualitative_section}
 
 ---
 
@@ -202,16 +234,26 @@ class ResAgentEngine:
 
     def invoke(self, inputs: dict) -> dict:
         user_text = inputs.get("input", "")
-        system_prompt = "You are ResAgent, an executive AI copilot for Radhika Dhama. Answer any question about her resume, education, projects, job fit, or technical depth directly and concisely."
+        role = inputs.get("role", "")
+        system_prompt = (
+            "You are ResAgent, an AI copilot for Radhika Dhama. "
+            f"The recruiter is hiring for: {role}. "
+            "Emphasize the parts of her background most relevant to that role. "
+            "For ANY question about Radhika, first call search_candidate_portfolio "
+            "and answer only from the retrieved text. "
+            "If the retrieved text does not contain the answer, say so."
+        )
         full_query = f"{system_prompt}\n\nUser Question: {user_text}"
         try:
             ai_msg = self.llm_with_tools.invoke(full_query)
             if hasattr(ai_msg, "tool_calls") and ai_msg.tool_calls:
                 tool_outputs = []
+                tools_used = []
                 for tool_call in ai_msg.tool_calls:
                     tool_name = tool_call["name"]
                     tool_args = tool_call["args"]
                     if tool_name in self.tools:
+                        tools_used.append(tool_name)
                         tool_func = self.tools[tool_name]
                         arg_val = list(tool_args.values())[0] if tool_args else user_text
                         tool_res = tool_func.invoke(arg_val)
@@ -219,12 +261,12 @@ class ResAgentEngine:
                 context_str = "\n\n".join(tool_outputs)
                 final_prompt = f"User Question: {user_text}\n\nRetrieved Data:\n{context_str}\n\nProvide a concise, tailored Markdown response addressing the question directly:"
                 final_ans = self.llm.invoke(final_prompt)
-                return {"output": extract_clean_text(final_ans.content)}
+                return {"output": extract_clean_text(final_ans.content), "tools_used": tools_used}
             else:
-                return {"output": extract_clean_text(ai_msg.content)}
+                return {"output": extract_clean_text(ai_msg.content), "tools_used": []}
         except Exception as e:
             vs_docs = search_candidate_portfolio.invoke(user_text)
-            return {"output": f"### Candidate Information — Radhika Dhama\n\n{vs_docs}"}
+            return {"output": f"### Candidate Information — Radhika Dhama\n\n{vs_docs}", "tools_used": ["search_candidate_portfolio (fallback)"]}
 
 def get_resagent_executor(api_key: str = None):
     return ResAgentEngine(api_key or get_default_api_key())
