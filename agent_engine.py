@@ -350,5 +350,7 @@ class ResAgentEngine:
             clean_docs = clean_markdown_output(vs_docs)
             return {"output": f"### Candidate Summary — Radhika Dhama\n\n{clean_docs}", "tools_used": ["search_candidate_portfolio (fallback)"]}
 
+@st.cache_resource
 def get_resagent_executor(api_key: str = None):
     return ResAgentEngine(api_key or get_default_api_key())
+
