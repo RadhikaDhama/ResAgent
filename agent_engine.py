@@ -272,19 +272,19 @@ class ResAgentEngine:
         if not api_key:
             api_key = get_default_api_key()
         model_candidates = ["gemini-flash-latest", "gemini-2.0-flash-lite", "gemini-3.6-flash", "gemini-2.0-flash", "gemini-pro"]
+        self.model_candidates = model_candidates
+        self.api_key = api_key
         self.llm = None
         for model_name in model_candidates:
             try:
-                candidate_llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.2)
-                candidate_llm.invoke("ping")  # Test-invoke: verify model responds, not just constructs
-                self.llm = candidate_llm
+                self.llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.2)
                 break
             except Exception:
                 continue
         if self.llm is None:
             raise RuntimeError(
-                f"No working Gemini model found. Tried: {model_candidates}. "
-                "Check your GOOGLE_API_KEY and model availability."
+                f"No Gemini model could be constructed. Tried: {model_candidates}. "
+                "Check your GOOGLE_API_KEY."
             )
             
         self.tools = {
