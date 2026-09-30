@@ -190,23 +190,63 @@ st.plotly_chart(fig, use_container_width=True)
 ```
 """
     elif "ood" in t_lower or "mahalanobis" in t_lower or "gmm" in t_lower:
-        return r"""
-### Technical Snippet: Statistical OOD Detection (GMM + Relative Mahalanobis Distance)
-```python
-import numpy as np
-from sklearn.mixture import GaussianMixture
-class StatisticalOODDetector:
-    def __init__(self, n_classes=41):
-        self.gmm_models = {}
-```
+        return """
+### Statistical OOD Detection — Internship @ Coriolis Technologies
+
+**Problem:** Deep learning document classifier produced high false-positive rates on out-of-distribution inputs across 41 document classes.
+
+**Approach:**
+- Extracted deep embeddings from the classifier's penultimate layer for all training samples
+- Trained **per-class Gaussian Mixture Models (GMM)** on those embeddings to model each class's distribution
+- Computed **Relative Mahalanobis Distance** — the difference between the Mahalanobis distance to the predicted class and the minimum distance to any class — as the OOD score
+- Combined the GMM log-likelihood with the relative distance in a trained meta-classifier to make the final in-distribution vs. OOD decision
+
+**Results:**
+- **99% OOD recall** and **99.59% overall accuracy**
+- Raised valid document classification accuracy from **75% to 89%** by filtering OOD inputs before the deep classifier
+
+**Tools Used:** Python, Scikit-learn (GaussianMixture), SciPy (Mahalanobis distance), NumPy
+
+*Note: Source code is proprietary to Coriolis Technologies and cannot be shared publicly.*
 """
     elif "lora" in t_lower or "tts" in t_lower or "speech" in t_lower:
         return """
-### Technical Snippet: 3-Stage LoRA Fine-Tuning Pipeline (Hindi TTS Orpheus-3B)
+### 3-Stage LoRA Fine-Tuning Pipeline (Hindi TTS) — Internship @ Coriolis Technologies
+
+**Problem:** Pre-trained English speech model (Orpheus-3B) suffered complete failure on Hindi text — 92% Word Error Rate.
+
+**Approach — 3-Stage LoRA Fine-Tuning:**
+1. **Stage 1 — Pronunciation Alignment:** Adapted the model to Hindi phoneme mappings using LoRA adapters on attention projection layers, trained on phoneme-aligned Hindi text-audio pairs.
+2. **Stage 2 — Speaker-Voice Consistency:** Fine-tuned to preserve speaker identity across Hindi utterances, verified using ECAPA-TDNN speaker embeddings for cosine similarity.
+3. **Stage 3 — 7-Emotion Expressiveness:** Added emotion control (happy, sad, angry, etc.) for Hindi speech, verified using a wav2vec2 emotion classifier.
+
+**Evaluation Pipeline:** Benchmarked on 500 Hindi samples using Whisper ASR for transcription accuracy, ECAPA-TDNN for speaker similarity, and wav2vec2 for emotion classification.
+
+**Results:**
+- **Word Error Rate:** 0.92 → 0.31 (↓66.6%)
+- **Character Error Rate:** 0.85 → 0.15 (↓82.4%)
+
+**Tools Used:** PyTorch, Unsloth, PEFT/LoRA, Hugging Face Transformers, Whisper, ECAPA-TDNN, wav2vec2
+
+*Note: Source code is proprietary to Coriolis Technologies and cannot be shared publicly.*
 """
     else:
         return """
-### Technical Snippet: Mean-Variance Portfolio Optimization & VaR
+### Mean-Variance Portfolio Optimization & Tail-Risk Modeling — Academic Project
+
+**Objective:** Build a constrained portfolio optimizer that accounts for regime-sensitive risk and measures downside exposure.
+
+**Approach:**
+- **EWMA Covariance (λ=0.94):** Used Exponentially Weighted Moving Average covariance instead of sample covariance to give more weight to recent market conditions and capture regime shifts.
+- **Sharpe Ratio Maximization:** Optimized portfolio weights using SciPy's SLSQP solver with constraints — weights sum to 1, maximum 40% allocation per asset to enforce diversification.
+- **VaR/CVaR Tail-Risk Metrics:** Computed Value-at-Risk at 95% confidence and Conditional VaR (expected shortfall beyond VaR) to quantify worst-case portfolio losses.
+
+**Key Concepts:**
+- Constrained non-linear optimization (SLSQP) with position-limit bounds
+- EWMA covariance for regime-sensitive risk estimation
+- VaR/CVaR for regulatory and risk-management reporting
+
+**Tools Used:** Python, NumPy, SciPy (optimize), Pandas
 """
 
 def extract_clean_text(ans_content) -> str:
@@ -235,12 +275,17 @@ class ResAgentEngine:
         self.llm = None
         for model_name in model_candidates:
             try:
-                self.llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.2)
+                candidate_llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.2)
+                candidate_llm.invoke("ping")  # Test-invoke: verify model responds, not just constructs
+                self.llm = candidate_llm
                 break
             except Exception:
                 continue
         if self.llm is None:
-            self.llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", google_api_key=api_key, temperature=0.2)
+            raise RuntimeError(
+                f"No working Gemini model found. Tried: {model_candidates}. "
+                "Check your GOOGLE_API_KEY and model availability."
+            )
             
         self.tools = {
             "search_candidate_portfolio": search_candidate_portfolio,
@@ -252,6 +297,17 @@ class ResAgentEngine:
     def invoke(self, inputs: dict) -> dict:
         user_text = inputs.get("input", "")
         role = inputs.get("role", "")
+        chat_history = inputs.get("chat_history", [])
+
+        # Format prior conversation turns so the model sees full context
+        history_block = ""
+        if chat_history:
+            history_lines = []
+            for msg in chat_history:
+                speaker = "User" if getattr(msg, "type", "") == "human" else "Assistant"
+                history_lines.append(f"{speaker}: {msg.content}")
+            history_block = "Prior Conversation:\n" + "\n".join(history_lines) + "\n\n"
+
         system_prompt = (
             "You are ResAgent, an executive AI copilot for Radhika Dhama's portfolio. "
             f"The recruiter is evaluating candidate fit for: {role}. "
@@ -260,7 +316,7 @@ class ResAgentEngine:
             "Format links as clean hyperlinked Markdown text, e.g. [LinkedIn](https://...) and [GitHub](https://...). "
             "For ANY question about Radhika, call search_candidate_portfolio and answer accurately from retrieved context."
         )
-        full_query = f"{system_prompt}\n\nUser Question: {user_text}"
+        full_query = f"{system_prompt}\n\n{history_block}User Question: {user_text}"
         try:
             ai_msg = self.llm_with_tools.invoke(full_query)
             if hasattr(ai_msg, "tool_calls") and ai_msg.tool_calls:
@@ -278,7 +334,9 @@ class ResAgentEngine:
                 context_str = "\n\n".join(tool_outputs)
                 final_prompt = (
                     f"System: Respond in professional Markdown. Avoid ASCII lines like '======='. Format links as [Name](URL).\n"
+                    f"IMPORTANT: Answer ONLY from the retrieved data below. Do NOT invent skills, experiences, or metrics not present in the context.\n"
                     f"Target Role: {role}\n"
+                    f"{history_block}"
                     f"User Question: {user_text}\n\n"
                     f"Retrieved Data:\n{context_str}\n\n"
                     f"Answer:"
