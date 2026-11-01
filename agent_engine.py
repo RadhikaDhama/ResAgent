@@ -117,11 +117,11 @@ def analyze_job_description_fit(job_description: str) -> str:
         )
 
         api_key = get_default_api_key()
-        model_candidates = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"]
+        model_candidates = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.7-flash"]
         llm = None
         for model_name in model_candidates:
             try:
-                llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.2)
+                llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.2, timeout=15)
                 qual_response = llm.invoke(grounding_prompt)
                 qualitative_section = extract_clean_text(qual_response.content)
                 break
@@ -265,13 +265,13 @@ class ResAgentEngine:
     def __init__(self, api_key: str = None):
         if not api_key:
             api_key = get_default_api_key()
-        model_candidates = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"]
+        model_candidates = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.7-flash"]
         self.model_candidates = model_candidates
         self.api_key = api_key
         self.llm = None
         for model_name in model_candidates:
             try:
-                self.llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.2)
+                self.llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.2, timeout=15)
                 break
             except Exception:
                 continue
@@ -349,7 +349,7 @@ class ResAgentEngine:
                 try:
                     print(f"[ResAgent] Trying fallback model: {fallback_model}")
                     fallback_llm = ChatGoogleGenerativeAI(
-                        model=fallback_model, google_api_key=self.api_key, temperature=0.2
+                        model=fallback_model, google_api_key=self.api_key, temperature=0.2, timeout=15
                     )
                     fallback_with_tools = fallback_llm.bind_tools(list(self.tools.values()))
                     ai_msg = fallback_with_tools.invoke(full_query)
