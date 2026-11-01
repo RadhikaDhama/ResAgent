@@ -8,7 +8,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-_VECTORSTORE = None
+
 
 def get_default_api_key():
     """Read API key from environment variable or Streamlit secrets only."""
@@ -22,25 +22,19 @@ def get_default_api_key():
         pass
     return ""
 
+
+
+@st.cache_resource(show_spinner="Loading knowledge base...")
 def get_or_build_vectorstore():
-    global _VECTORSTORE
-    if _VECTORSTORE is not None:
-        return _VECTORSTORE
-    
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(base_dir, "data", "resume_knowledge.txt")
     if not os.path.exists(data_path):
         data_path = "resume_knowledge.txt"
-        
-    loader = TextLoader(data_path, encoding="utf-8")
-    documents = loader.load()
-    
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=450, chunk_overlap=60)
-    chunks = text_splitter.split_documents(documents)
-    
+
+    documents = TextLoader(data_path, encoding="utf-8").load()
+    chunks = RecursiveCharacterTextSplitter(chunk_size=450, chunk_overlap=60).split_documents(documents)
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    _VECTORSTORE = FAISS.from_documents(chunks, embeddings)
-    return _VECTORSTORE
+    return FAISS.from_documents(chunks, embeddings)
 
 @tool
 def search_candidate_portfolio(query: str) -> str:
