@@ -117,7 +117,7 @@ def analyze_job_description_fit(job_description: str) -> str:
         )
 
         api_key = get_default_api_key()
-        model_candidates = ["gemini-flash-latest", "gemini-2.0-flash-lite", "gemini-3.6-flash", "gemini-2.0-flash", "gemini-pro"]
+        model_candidates = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-pro"]
         llm = None
         for model_name in model_candidates:
             try:
@@ -265,7 +265,7 @@ class ResAgentEngine:
     def __init__(self, api_key: str = None):
         if not api_key:
             api_key = get_default_api_key()
-        model_candidates = ["gemini-flash-latest", "gemini-2.0-flash-lite", "gemini-3.6-flash", "gemini-2.0-flash", "gemini-pro"]
+        model_candidates = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-pro"]
         self.model_candidates = model_candidates
         self.api_key = api_key
         self.llm = None
@@ -293,14 +293,17 @@ class ResAgentEngine:
         role = inputs.get("role", "")
         chat_history = inputs.get("chat_history", [])
 
+        # Cap to last 10 messages to prevent prompt bloat on long conversations
+        recent_history = chat_history[-10:] if len(chat_history) > 10 else chat_history
+
         # Format prior conversation turns so the model sees full context
         history_block = ""
-        if chat_history:
+        if recent_history:
             history_lines = []
-            for msg in chat_history:
+            for msg in recent_history:
                 speaker = "User" if getattr(msg, "type", "") == "human" else "Assistant"
                 history_lines.append(f"{speaker}: {msg.content}")
-            history_block = "Prior Conversation:\n" + "\n".join(history_lines) + "\n\n"
+            history_block = "Prior Conversation (last few turns):\n" + "\n".join(history_lines) + "\n\n"
 
         system_prompt = (
             "You are ResAgent, an executive AI copilot for Radhika Dhama's portfolio. "
@@ -340,6 +343,9 @@ class ResAgentEngine:
             else:
                 return {"output": clean_markdown_output(ai_msg.content), "tools_used": []}
         except Exception as e:
+            import traceback
+            print(f"[ResAgent] Tool-calling failed, using fallback. Error: {e}")
+            traceback.print_exc()
             vs_docs = search_candidate_portfolio.invoke(user_text)
             clean_docs = clean_markdown_output(vs_docs)
             return {"output": f"### Candidate Summary — Radhika Dhama\n\n{clean_docs}", "tools_used": ["search_candidate_portfolio (fallback)"]}
