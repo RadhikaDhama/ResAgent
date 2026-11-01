@@ -6,7 +6,6 @@ import pandas as pd
 from langchain_core.messages import HumanMessage, AIMessage
 from agent_engine import get_resagent_executor, analyze_job_description_fit, get_or_build_vectorstore
 
-get_or_build_vectorstore()   # loads at boot, so the first question isn't the one that waits
 
 try:
     import plotly.graph_objects as go
@@ -21,6 +20,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+get_or_build_vectorstore()  
 
 # Custom Styling (Enhanced Radio Buttons, Fonts, Icons)
 css_styles = """
