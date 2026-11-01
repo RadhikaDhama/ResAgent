@@ -117,7 +117,7 @@ def analyze_job_description_fit(job_description: str) -> str:
         )
 
         api_key = get_default_api_key()
-        model_candidates = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-pro"]
+        model_candidates = ["gemini-3.8-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-pro"]
         llm = None
         for model_name in model_candidates:
             try:
@@ -265,7 +265,7 @@ class ResAgentEngine:
     def __init__(self, api_key: str = None):
         if not api_key:
             api_key = get_default_api_key()
-        model_candidates = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-pro"]
+        model_candidates = ["gemini-3.8-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-pro"]
         self.model_candidates = model_candidates
         self.api_key = api_key
         self.llm = None
