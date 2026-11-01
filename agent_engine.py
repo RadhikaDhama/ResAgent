@@ -342,10 +342,49 @@ class ResAgentEngine:
                 return {"output": clean_markdown_output(final_ans.content), "tools_used": tools_used}
             else:
                 return {"output": clean_markdown_output(ai_msg.content), "tools_used": []}
-        except Exception as e:
-            import traceback
-            print(f"[ResAgent] Tool-calling failed, using fallback. Error: {e}")
-            traceback.print_exc()
+        except Exception as primary_error:
+            # If primary model fails (rate limit, etc.), try fallback models
+            print(f"[ResAgent] Primary model failed: {primary_error}")
+            for fallback_model in self.model_candidates[1:]:
+                try:
+                    print(f"[ResAgent] Trying fallback model: {fallback_model}")
+                    fallback_llm = ChatGoogleGenerativeAI(
+                        model=fallback_model, google_api_key=self.api_key, temperature=0.2
+                    )
+                    fallback_with_tools = fallback_llm.bind_tools(list(self.tools.values()))
+                    ai_msg = fallback_with_tools.invoke(full_query)
+                    if hasattr(ai_msg, "tool_calls") and ai_msg.tool_calls:
+                        tool_outputs = []
+                        tools_used = []
+                        for tool_call in ai_msg.tool_calls:
+                            tool_name = tool_call["name"]
+                            tool_args = tool_call["args"]
+                            if tool_name in self.tools:
+                                tools_used.append(tool_name)
+                                tool_func = self.tools[tool_name]
+                                arg_val = list(tool_args.values())[0] if tool_args else user_text
+                                tool_res = tool_func.invoke(arg_val)
+                                tool_outputs.append(f"{tool_res}")
+                        context_str = "\n\n".join(tool_outputs)
+                        final_prompt = (
+                            f"System: Respond in professional Markdown. Avoid ASCII lines like '======='. Format links as [Name](URL).\n"
+                            f"IMPORTANT: Answer ONLY from the retrieved data below. Do NOT invent skills, experiences, or metrics not present in the context.\n"
+                            f"Target Role: {role}\n"
+                            f"{history_block}"
+                            f"User Question: {user_text}\n\n"
+                            f"Retrieved Data:\n{context_str}\n\n"
+                            f"Answer:"
+                        )
+                        final_ans = fallback_llm.invoke(final_prompt)
+                        return {"output": clean_markdown_output(final_ans.content), "tools_used": tools_used}
+                    else:
+                        return {"output": clean_markdown_output(ai_msg.content), "tools_used": []}
+                except Exception as fallback_error:
+                    print(f"[ResAgent] Fallback {fallback_model} also failed: {fallback_error}")
+                    continue
+
+            # All models exhausted — fall back to raw FAISS retrieval
+            print("[ResAgent] All models exhausted, using raw FAISS fallback")
             vs_docs = search_candidate_portfolio.invoke(user_text)
             clean_docs = clean_markdown_output(vs_docs)
             return {"output": f"### Candidate Summary — Radhika Dhama\n\n{clean_docs}", "tools_used": ["search_candidate_portfolio (fallback)"]}
